@@ -2724,7 +2724,7 @@ void AuraEffect::HandleModThreat(AuraApplication const* aurApp, uint8 mode, bool
     Unit* target = aurApp->GetTarget();
     for (int8 i = 0; i < MAX_SPELL_SCHOOL; ++i)
         if (GetMiscValue() & (1 << i))
-            ApplyPercentModFloatVar(target->m_threatModifier[i], float(GetAmount()), apply);
+            AddPct(target->m_threatModifier[i], apply ? float(GetAmount()) : -float(GetAmount()));
 }
 
 void AuraEffect::HandleAuraModTotalThreat(AuraApplication const* aurApp, uint8 mode, bool apply) const
