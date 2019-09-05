@@ -49,6 +49,7 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "SpellQueue.h"
 #include "TemporarySummon.h"
 #include "TradeData.h"
 #include "Unit.h"
@@ -539,13 +540,14 @@ class TC_GAME_API SpellEvent : public BasicEvent
         Spell* m_Spell;
 };
 
-Spell::Spell(Unit* caster, SpellInfo const* info, TriggerCastFlags triggerFlags, ObjectGuid originalCasterGUID, bool skipCheck) :
+Spell::Spell(Unit* caster, SpellInfo const* info, TriggerCastFlags triggerFlags, ObjectGuid originalCasterGUID, bool skipCheck, uint32 queueDelay) :
 m_spellInfo(sSpellMgr->GetSpellForDifficultyFromSpell(info, caster)),
 m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerOrOwner()) ? caster->GetCharmerOrOwner() : caster)
 , m_spellValue(new SpellValue(m_spellInfo))
 {
     m_customError = SPELL_CUSTOM_ERROR_NONE;
     m_skipCheck = skipCheck;
+    m_queueDelay = queueDelay;
     m_selfContainer = nullptr;
     m_referencedFromCurrentSpell = false;
     m_executedCurrently = false;
@@ -553,7 +555,6 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
     m_comboPointGain = 0;
     m_delayStart = 0;
     m_delayAtDamageCount = 0;
-
     m_applyMultiplierMask = 0;
     m_auraScaleMask = 0;
     memset(m_damageMultipliers, 0, sizeof(m_damageMultipliers));
@@ -3536,6 +3537,10 @@ void Spell::_cast(bool skipCheck)
     if (Creature* caster = m_originalCaster->ToCreature())
         if (caster->IsAIEnabled)
             caster->AI()->OnSuccessfulSpellCast(GetSpellInfo());
+
+    // Execute next queued spell right away
+    if (Player* player = m_originalCaster->ToPlayer())
+        player->GetSpellQueue()->ExecuteNextSpell();
 }
 
 void Spell::handle_immediate()
@@ -8057,7 +8062,10 @@ void Spell::TriggerGlobalCooldown()
     }
 
     if (gcd)
+    {
+        gcd = std::max<int32>(0, gcd - m_queueDelay);
         m_caster->GetSpellHistory()->AddGlobalCooldown(m_spellInfo, gcd);
+    }
 }
 
 void Spell::CancelGlobalCooldown()

@@ -78,6 +78,7 @@ class PlayerMenu;
 class PlayerSocial;
 class ReputationMgr;
 class SpellCastTargets;
+class SpellQueue;
 class TradeData;
 
 enum InventoryType : uint8;
@@ -2394,6 +2395,9 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 
         void ResetHolyPowerRegenerationTimer() { m_holyPowerRegenTimerCount = 0; }
 
+        // Spell Queue
+        SpellQueue* GetSpellQueue() const { return m_spellQueue; }
+
     protected:
         // Gamemaster whisper whitelist
         GuidList WhisperList;
@@ -2772,6 +2776,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         TimeTrackerSmall m_groupUpdateTimer;
 
         uint32 _transportSpawnID;
+
+        SpellQueue* m_spellQueue;
 };
 
 TC_GAME_API void AddItemsSetItem(Player* player, Item* item);

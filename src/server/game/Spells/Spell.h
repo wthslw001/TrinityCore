@@ -384,7 +384,7 @@ class TC_GAME_API Spell
 
         typedef std::unordered_set<Aura*> UsedSpellMods;
 
-        Spell(Unit* caster, SpellInfo const* info, TriggerCastFlags triggerFlags, ObjectGuid originalCasterGUID = ObjectGuid::Empty, bool skipCheck = false);
+        Spell(Unit* caster, SpellInfo const* info, TriggerCastFlags triggerFlags, ObjectGuid originalCasterGUID = ObjectGuid::Empty, bool skipCheck = false, uint32 queueDelay = 0);
         ~Spell();
 
         void InitExplicitTargets(SpellCastTargets const& targets);
@@ -588,6 +588,7 @@ class TC_GAME_API Spell
         uint64 m_delayStart;                                // time of spell delay start, filled by event handler, zero = just started
         uint64 m_delayMoment;                               // moment of next delay call, used internally
         bool m_immediateHandled;                            // were immediate actions handled? (used by delayed spells only)
+        uint32 m_queueDelay;                                // Passed time in spell queue to modify the global cooldown time
 
         // These vars are used in both delayed spell system and modified immediate spell system
         bool m_referencedFromCurrentSpell;                  // mark as references to prevent deleted and access by dead pointers

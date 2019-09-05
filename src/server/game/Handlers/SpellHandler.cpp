@@ -37,6 +37,7 @@
 #include "Spell.h"
 #include "SpellAuraEffects.h"
 #include "SpellMgr.h"
+#include "SpellQueue.h"
 #include "Totem.h"
 #include "World.h"
 #include "WorldPacket.h"
@@ -466,10 +467,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
                 spellInfo = actualSpellInfo;
         }
 
-    Spell* spell = new Spell(caster, spellInfo, triggerFlag, ObjectGuid::Empty, false);
-    spell->m_cast_count = castCount;                       // set count of casts
-    spell->m_glyphIndex = glyphIndex;
-    spell->prepare(&targets);
+    _player->GetSpellQueue()->AddSpellToQueue(spellInfo->Id, glyphIndex, castCount, triggerFlag, targets);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)

@@ -87,6 +87,7 @@
 #include "SpellAuras.h"
 #include "SpellHistory.h"
 #include "SpellMgr.h"
+#include "SpellQueue.h"
 #include "TicketMgr.h"
 #include "TradeData.h"
 #include "Transport.h"
@@ -414,6 +415,8 @@ Player::Player(WorldSession* session): Unit(true)
     m_groupUpdateTimer.Reset(5000);
 
     _transportSpawnID = 0;
+
+    m_spellQueue = new SpellQueue(this);
 }
 
 Player::~Player()
@@ -448,6 +451,7 @@ Player::~Player()
     delete m_reputationMgr;
     delete _cinematicMgr;
     delete _archaeology;
+    delete m_spellQueue;
 
     for (uint8 i = 0; i < VOID_STORAGE_MAX_SLOT; ++i)
         delete _voidStorageItems[i];
@@ -1399,6 +1403,7 @@ void Player::Update(uint32 p_time)
     if (IsHasDelayedTeleport() && IsAlive())
         TeleportTo(m_teleport_dest, m_teleport_options, m_teleport_transport);
 
+    GetSpellQueue()->Update(p_time);
 }
 
 void Player::setDeathState(DeathState s)
@@ -1439,6 +1444,7 @@ void Player::setDeathState(DeathState s)
         ResetAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_GET_KILLING_BLOWS, ACHIEVEMENT_CRITERIA_CONDITION_NO_DEATH);
     }
 
+    GetSpellQueue()->CancelSpellInQueue();
     Unit::setDeathState(s);
 
     // restore resurrection spell id for player after aura remove
